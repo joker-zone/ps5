@@ -621,6 +621,11 @@ const REUSE_QUERY = Object.freeze({
     attempts: "8", only: STAGE5_ONLY, log: "debug", payload: "1",
     reuse: "1", v: ROUTE_VERSION
 });
+const PRODUCTION_PLD_QUERY = Object.freeze({
+    go: "1", auto: "1", production: "1", trigger: "netcontrol",
+    attempts: "8", only: STAGE5_ONLY, log: "debug", payload: "1",
+    autoload: "pldmgr", v: ROUTE_VERSION
+});
 const STAGE5_INTENT = Q.has("stage5") || Q.has("payload")
     || Q.getAll("proof").some(value => value.indexOf("stage5") === 0)
     || Q.getAll("only").some(value => value.split(",")
@@ -638,10 +643,13 @@ function exactQuery(expected) {
         && keys.every(key => Q.getAll(key).length === 1);
 }
 
+const AUTOLOAD_PLD_MGR = exactQuery(PRODUCTION_PLD_QUERY);
+
 const STAGE5_REQUEST_ERROR = (() => {
     if (!STAGE5_INTENT) return "";
     if (!exactQuery(STAGE5_DRY_QUERY) && !exactQuery(STAGE5_LIVE_QUERY)
-        && !exactQuery(PRODUCTION_QUERY) && !exactQuery(REUSE_QUERY))
+        && !exactQuery(PRODUCTION_QUERY) && !exactQuery(REUSE_QUERY)
+        && !AUTOLOAD_PLD_MGR)
         return "noncanonical-stage5-request";
     return STAGE5_FIRMWARES.indexOf(window.fw_str) >= 0
         ? "" : "unsupported-stage5-firmware";
@@ -649,10 +657,11 @@ const STAGE5_REQUEST_ERROR = (() => {
 
 const PRODUCTION_REQUEST_ERROR = (() => {
     if (!Q.has("production") && !Q.has("auto") && !Q.has("next")) return "";
-    return exactQuery(PRODUCTION_QUERY) || exactQuery(REUSE_QUERY)
+    return exactQuery(PRODUCTION_QUERY) || exactQuery(REUSE_QUERY) || AUTOLOAD_PLD_MGR
         ? "" : "noncanonical-production-request";
 })();
-const PRODUCTION_RUN = exactQuery(PRODUCTION_QUERY) || exactQuery(REUSE_QUERY);
+const PRODUCTION_RUN = exactQuery(PRODUCTION_QUERY) || exactQuery(REUSE_QUERY)
+    || AUTOLOAD_PLD_MGR;
 
 function cleanNegativeCheckpoint(last) {
     return last && last.rev === REV && last.checkpoint === true
@@ -723,6 +732,7 @@ function canStartStage5Proof(last, proof, payload) {
 }
 
 let elfldrSpawned = false;
+let autoPayloadStarted = false;
 const screenLines = [];
 
 const screenLineLimit = 12;
@@ -1153,6 +1163,21 @@ function showPayloadMenu(readyState) {
     const progress = document.getElementById("payloadProgress");
     if (progress && ready)
         progress.textContent = "Select a payload to send it to the ELF loader.";
+
+    if (ready && AUTOLOAD_PLD_MGR && !autoPayloadStarted) {
+        autoPayloadStarted = true;
+        const managerTile = Array.from(tiles).find(function (tile) {
+            return tile.getAttribute("data-name") === "pldmgr.elf";
+        });
+        if (managerTile) {
+            setTimeout(function () {
+                sendPayloadInPlace("pldmgr.elf", managerTile);
+            }, 350);
+        } else {
+            if (progress) progress.textContent = "Payload Manager is not available.";
+            flushMark("ELF-SEND-FAILED", "name=pldmgr.elf-why=not-listed");
+        }
+    }
 
     setTimeout(function () {
         const firstRect = tiles.length ? tiles[0].getBoundingClientRect() : null;
