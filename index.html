@@ -1,0 +1,318 @@
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<meta name="theme-color" content="#080b12">
+<title>PS5 Firmware Selector</title>
+
+<style>
+* { box-sizing: border-box; }
+
+:root {
+    color-scheme: dark;
+    --ink: #101411;
+    --panel: #1a201b;
+    --paper: #f1f2e8;
+    --muted: #a0a79d;
+    --line: rgba(230, 240, 226, .15);
+    --coral: #f47c61;
+    --lime: #c7ee70;
+    --aqua: #66d8ca;
+}
+
+html {
+    width: 100%;
+    height: 100%;
+    min-width: 320px;
+    overflow: hidden;
+    background: var(--ink);
+}
+
+body {
+    width: 100%;
+    height: 100%;
+    height: 100dvh;
+    min-width: 320px;
+    min-height: 0;
+    margin: 0;
+    overflow: hidden;
+    color: var(--paper);
+    font-family: Arial, Tahoma, sans-serif;
+    font-weight: 500;
+    background-color: #080b12;
+    background-image:
+        linear-gradient(90deg, rgba(4, 8, 17, .56), rgba(4, 8, 17, .34) 52%, rgba(4, 8, 17, .28)),
+        linear-gradient(0deg, rgba(4, 8, 17, .42), rgba(4, 8, 17, .12) 55%, rgba(4, 8, 17, .20)),
+        url("cover.png");
+    background-position: center;
+    background-size: 100% 100%;
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+}
+
+a { color: inherit; }
+
+.portal-shell {
+    display: flex;
+    flex-direction: column;
+    width: min(1500px, calc(100% - 96px));
+    height: 100%;
+    height: 100dvh;
+    min-height: 0;
+    margin-inline: auto;
+}
+
+.masthead {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    min-height: 88px;
+    border-bottom: 1px solid var(--line);
+}
+
+.masthead-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    color: #c4c9be;
+    direction: ltr;
+    font-size: 11px;
+    font-weight: 700;
+}
+
+.tag-light {
+    width: 7px;
+    height: 7px;
+    background: var(--coral);
+}
+
+.launch-layout {
+    position: relative;
+    top: -48px;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto auto;
+    align-content: center;
+    align-items: center;
+    gap: 24px;
+    flex: 1;
+    min-height: 0;
+    padding-block: 32px 64px;
+}
+
+.intro {
+    position: relative;
+    width: min(900px, 100%);
+    justify-self: center;
+    text-align: center;
+}
+
+h1 {
+    margin: 0;
+    color: var(--paper);
+    font-size: 48px;
+    font-weight: 800;
+    line-height: 1.2;
+    white-space: nowrap;
+}
+
+h1 span { color: var(--lime); }
+
+.intro-rule {
+    width: 82px;
+    height: 3px;
+    margin: 14px auto 0;
+    background: linear-gradient(90deg, var(--coral) 0 34%, var(--lime) 34% 67%, var(--aqua) 67%);
+}
+
+.firmware-grid {
+    position: relative;
+    top: -24px;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 14px;
+    width: min(900px, 100%);
+    justify-self: center;
+    direction: ltr;
+}
+
+.firmware-card {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    min-width: 0;
+    min-height: 320px;
+    overflow: hidden;
+    padding: 18px 16px 14px;
+    border: 1px solid var(--line);
+    border-radius: 5px;
+    background:
+        linear-gradient(155deg, var(--wash), transparent 52%),
+        repeating-linear-gradient(135deg, transparent 0 24px, rgba(255,255,255,.018) 24px 25px),
+        rgba(7, 12, 22, .82);
+    text-decoration: none;
+    transition: transform .2s ease, border-color .2s ease, background-color .2s ease;
+    animation: card-arrive .55s both;
+}
+
+.firmware-card:nth-child(2) { animation-delay: .1s; }
+.firmware-card:nth-child(3) { animation-delay: .2s; }
+
+.firmware-card::before {
+    position: absolute;
+    inset: 0 0 auto;
+    height: 3px;
+    background: var(--accent);
+    content: "";
+}
+
+.tone-poopspl { --accent: var(--coral); --wash: rgba(244, 124, 97, .16); }
+.tone-p2jb { --accent: var(--lime); --wash: rgba(199, 238, 112, .13); }
+.tone-relapse { --accent: var(--aqua); --wash: rgba(102, 216, 202, .14); }
+
+.firmware-card:hover { transform: translateY(-5px); border-color: var(--accent); }
+.firmware-card:focus-visible { outline: 3px solid var(--paper); outline-offset: 4px; }
+
+.card-top,
+.card-bottom {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    direction: ltr;
+}
+
+.card-top { color: #adb3a8; font-size: 10px; font-weight: 600; }
+
+.card-index {
+    color: var(--accent);
+    font-weight: 800;
+}
+
+.card-copy {
+    position: relative;
+    z-index: 1;
+    margin-block: auto;
+    padding-block: 24px 16px;
+}
+
+.project-name {
+    display: block;
+    margin-bottom: 8px;
+    color: var(--accent);
+    direction: ltr;
+    font-size: 12px;
+    font-weight: 800;
+}
+
+.firmware-range {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 7px;
+    margin: 0;
+    color: var(--paper);
+    direction: ltr;
+    font-size: 29px;
+    font-weight: 800;
+    line-height: 1.2;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+}
+
+.firmware-range span { color: var(--accent); font-size: 20px; }
+
+.card-bottom {
+    padding-top: 14px;
+    border-top: 1px solid rgba(240, 244, 231, .18);
+    color: #d6dacf;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.card-arrow {
+    display: grid;
+    place-items: center;
+    width: 31px;
+    height: 31px;
+    border: 1px solid rgba(240, 244, 231, .28);
+    color: var(--accent);
+    font-size: 17px;
+    transition: color .2s ease, background-color .2s ease;
+}
+
+.firmware-card:hover .card-arrow,
+.firmware-card:focus-visible .card-arrow { background: var(--accent); color: var(--ink); }
+
+.footer-line {
+    display: flex;
+    justify-content: flex-end;
+    min-height: 54px;
+    border-top: 1px solid var(--line);
+    color: #899187;
+    direction: ltr;
+    font-size: 10px;
+    font-weight: 600;
+}
+
+.footer-line span { align-self: center; }
+
+@keyframes card-arrive {
+    from { opacity: 0; transform: translateY(16px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; }
+}
+</style>
+</head>
+
+<body>
+<div class="portal-shell">
+    <header class="masthead">
+        <span class="masthead-tag"><span class="tag-light" aria-hidden="true"></span>FIRMWARE / SELECT</span>
+    </header>
+
+    <main class="launch-layout">
+        <section class="intro" aria-labelledby="page-title">
+            <h1 id="page-title">اختر إصدار النظام</h1>
+            <div class="intro-rule" aria-hidden="true"></div>
+        </section>
+
+        <nav class="firmware-grid" aria-label="نطاقات البرامج الثابتة">
+            <a class="firmware-card tone-poopspl" href="./poopspl/" aria-label="فتح Poopspl، الإصدارات 7.00 إلى 12.00">
+                <span class="card-top"><span>FIRMWARE RANGE</span><span class="card-index">01</span></span>
+                <span class="card-copy">
+                    <span class="project-name">POOPSPL</span>
+                    <span class="firmware-range"><bdi>7.00</bdi><span>—</span><bdi>12.00</bdi></span>
+                </span>
+                <span class="card-bottom"><span>فتح</span><span class="card-arrow" aria-hidden="true">↗</span></span>
+            </a>
+
+            <a class="firmware-card tone-p2jb" href="./P2JB/" aria-label="فتح P2JB، الإصدارات 12.00 إلى 12.70">
+                <span class="card-top"><span>FIRMWARE RANGE</span><span class="card-index">02</span></span>
+                <span class="card-copy">
+                    <span class="project-name">P2JB</span>
+                    <span class="firmware-range"><bdi>12.00</bdi><span>—</span><bdi>12.70</bdi></span>
+                </span>
+                <span class="card-bottom"><span>فتح</span><span class="card-arrow" aria-hidden="true">↗</span></span>
+            </a>
+
+            <a class="firmware-card tone-relapse" href="./relapse/" aria-label="فتح Relapse، الإصدارات 7.00 إلى 13.60">
+                <span class="card-top"><span>FIRMWARE RANGE</span><span class="card-index">03</span></span>
+                <span class="card-copy">
+                    <span class="project-name">RELAPSE</span>
+                    <span class="firmware-range"><bdi>7.00</bdi><span>—</span><bdi>13.60</bdi></span>
+                </span>
+                <span class="card-bottom"><span>فتح</span><span class="card-arrow" aria-hidden="true">↗</span></span>
+            </a>
+        </nav>
+    </main>
+
+    <footer class="footer-line"><span>SELECT SYSTEM</span></footer>
+</div>
+</body>
+</html>
